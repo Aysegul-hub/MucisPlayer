@@ -151,6 +151,7 @@ public class HelloController {
                 }
         );
     }
+
     private String formatTime(double seconds) {
         int minutes = (int) seconds / 60;
         int secs = (int) seconds % 60;
@@ -204,7 +205,6 @@ public class HelloController {
 
         System.out.println("Sonraki şarkıya geçilecek.");
     }
-
 
 
 
