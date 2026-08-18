@@ -4,23 +4,79 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Slider?>
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.media.MediaView?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/26" fx:controller="com.example.musicplayer.HelloController">
+<VBox alignment="CENTER" prefWidth="400.0" spacing="20.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.musicplayer.HelloController">
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
 
-    <Label fx:id="welcomeText" text="MUSIC PLAYER" />
-   <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
-   <Label fx:id="songTitleLabel" text="Şarkı Adı" />
-   <Label fx:id="artistLabel" text="Sanatçı" />
-   <Slider fx:id="progressSlider" />
-   <Label fx:id="currentTimeLabel" text="Geçen Süre" />
-   <Label fx:id="totalTimeLabel" text="Toplam Süre" />
-   <Button fx:id="previousButton" mnemonicParsing="false" onAction="#previousSong" text="Önceki" />
-   <Button fx:id="playPauseButton" mnemonicParsing="false" onAction="#playPause" text="Play/Pause" />
-   <Button fx:id="nextButton" mnemonicParsing="false" onAction="#nextSong" text="Sonraki" />
-   <Slider fx:id="volumeSlider" />
+    <Label fx:id="welcomeText" text="MUSIC PLAYER" textFill="#30c930">
+      <font>
+         <Font name="System Bold" size="17.0" />
+      </font></Label>
+   <Line endX="173.5" startX="-100.0" stroke="#006802" />
+   <MediaView fx:id="mediaView" fitHeight="200.0" fitWidth="200.0" />
+   <Label fx:id="songTitleLabel" text="Şarkı Adı">
+      <font>
+         <Font name="System Bold" size="13.0" />
+      </font></Label>
+   <Label fx:id="artistLabel" text="Sanatçı">
+      <font>
+         <Font name="System Bold" size="13.0" />
+      </font></Label>
+   <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="354.0" spacing="45.0">
+      <children>
+         <Label fx:id="currentTimeLabel" text="Geçen Süre">
+            <font>
+               <Font size="13.0" />
+            </font>
+         </Label>
+         <Slider fx:id="progressSlider" prefHeight="84.0" prefWidth="137.0" HBox.hgrow="ALWAYS" />
+         <Label fx:id="totalTimeLabel" text="Toplam Süre" />
+      </children>
+   </HBox>
+   <HBox alignment="CENTER" prefHeight="67.0" prefWidth="360.0" spacing="105.0">
+      <children>
+         <Button fx:id="previousButton" minHeight="50.0" mnemonicParsing="false" onAction="#previousSong" prefWidth="50.0" text="⏮" textFill="#006802">
+            <font>
+               <Font name="System Bold" size="24.0" />
+            </font>
+         </Button>
+         <Button fx:id="playPauseButton" minHeight="50.0" mnemonicParsing="false" onAction="#playPause" prefWidth="50.0" text="▶" textFill="#006802">
+            <font>
+               <Font name="System Bold" size="24.0" />
+            </font>
+         </Button>
+         <Button fx:id="nextButton" minHeight="50.0" mnemonicParsing="false" onAction="#nextSong" prefWidth="50.0" text="⏭" textFill="#006802">
+            <font>
+               <Font name="System Bold" size="24.0" />
+            </font>
+         </Button>
+      </children>
+   </HBox>
+   <Label text="Ses Düzeyi" textFill="#1c13c6">
+      <font>
+         <Font name="System Bold" size="12.0" />
+      </font>
+   </Label>
+   <HBox prefHeight="100.0" prefWidth="200.0" spacing="95.0">
+      <children>
+         <Label text="🔉">
+            <font>
+               <Font size="14.0" />
+            </font>
+         </Label>
+         <Slider fx:id="volumeSlider" HBox.hgrow="ALWAYS" />
+         <Label text="🔊">
+            <font>
+               <Font size="14.0" />
+            </font>
+         </Label>
+      </children>
+   </HBox>
 </VBox>

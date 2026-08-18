@@ -6,12 +6,18 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
+import javafx.util.Duration;
+
 import java.net.URL;
-
-
-
+import java.util.ArrayList;
+import java.util.List;
 
 public class HelloController {
+
+    // FXML elemanları
+    @FXML
+    private MediaView mediaView;
 
     @FXML
     private Label songTitleLabel;
@@ -31,132 +37,170 @@ public class HelloController {
     @FXML
     private Slider volumeSlider;
 
+
     @FXML
     private Button playPauseButton;
 
-    @FXML
-    private Button previousButton;
 
-    @FXML
-    private Button nextButton;
-
+    // MediaPlayer'lar
     private MediaPlayer mediaPlayer;
+    private MediaPlayer videoPlayer;
 
 
+    // Şarkı listesi
+    private List<Song> songs = new ArrayList<>();
+
+    private int currentSongIndex = 0;
+
+
+    // BAŞLANGIÇ
     @FXML
     public void initialize() {
 
-        // ŞARKIYI BUL
-        var songUrl = getClass().getResource("/music/song1.mp3");
+        volumeSlider.setValue(100);
 
-        if (songUrl == null) {
-            System.out.println("Şarkı bulunamadı!");
+        volumeSlider.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (mediaPlayer != null) {
+                mediaPlayer.setVolume(newValue.doubleValue() / 100);
+            }
+        });
+
+        songs.add(new Song(
+                "Şarkı 1",
+                "Sanatçı 1",
+                "/music/song1.mp3",
+                "/video/video1.mp4"
+        ));
+
+        songs.add(new Song(
+                "Şarkı 2",
+                "Sanatçı 2",
+                "/music/song2.mp3",
+                "/video/video2.mp4"
+        ));
+
+        loadSong(0);
+    }
+
+
+    // ŞARKI YÜKLEME
+    private void loadSong(int index) {
+
+        Song song = songs.get(index);
+
+        // Eski müzik player'ı kapat
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.dispose();
+        }
+
+        // Eski video player'ı kapat
+        if (videoPlayer != null) {
+            videoPlayer.stop();
+            videoPlayer.dispose();
+        }
+
+
+        // Dosyaları bul
+        URL audioUrl =
+                getClass().getResource(song.getAudioPath());
+
+        URL videoUrl =
+                getClass().getResource(song.getVideoPath());
+
+
+        if (audioUrl == null || videoUrl == null) {
+            System.out.println("Şarkı veya video bulunamadı!");
             return;
         }
 
-        // MEDIA OLUŞTUR
-        Media media = new Media(songUrl.toExternalForm());
 
-        // MEDIAPLAYER OLUŞTUR
-        mediaPlayer = new MediaPlayer(media);
+        // Media oluştur
+        Media audioMedia =
+                new Media(audioUrl.toExternalForm());
 
-        // HAZIR OLDUĞUNDA
+        Media videoMedia =
+                new Media(videoUrl.toExternalForm());
+
+
+        // Player oluştur
+        mediaPlayer =
+                new MediaPlayer(audioMedia);
+
+        videoPlayer =
+                new MediaPlayer(videoMedia);
+
+
+        // Videoyu ekrana bağla
+        mediaView.setMediaPlayer(videoPlayer);
+
+
+        // Şarkı adı ve sanatçı
+        songTitleLabel.setText(song.getTitle());
+
+        artistLabel.setText(song.getArtist());
+
+
+        // Müzik hazır olduğunda
         mediaPlayer.setOnReady(() -> {
 
             double totalSeconds =
-                    mediaPlayer.getTotalDuration().toSeconds();
-
-            // ŞARKI SÜRESİ
-            progressSlider.setMin(0);
-            progressSlider.setMax(totalSeconds);
+                    mediaPlayer
+                            .getTotalDuration()
+                            .toSeconds();
 
             totalTimeLabel.setText(
                     formatTime(totalSeconds)
             );
 
-            // ŞARKI OYNADIKÇA SLIDER İLERLESİN
-            mediaPlayer.currentTimeProperty().addListener(
-                    (obs, oldTime, newTime) -> {
+            progressSlider.setMin(0);
 
-                        if (!progressSlider.isValueChanging()) {
+            progressSlider.setMax(totalSeconds);
 
-                            progressSlider.setValue(
-                                    newTime.toSeconds()
-                            );
-                        }
+            progressSlider.setValue(0);
 
-                        currentTimeLabel.setText(
-                                formatTime(newTime.toSeconds())
-                        );
-                    }
-            );
+            currentTimeLabel.setText("00:00");
         });
 
 
-        // MEDIAPLAYER HATASI
-        mediaPlayer.setOnError(() ->
-                System.out.println(
-                        "MediaPlayer HATASI: "
-                                + mediaPlayer.getError()
-                )
-        );
+        // Şarkı ilerledikçe slider ilerlesin
+        mediaPlayer.currentTimeProperty().addListener(
+                (observable, oldValue, newValue) -> {
 
-        // MEDIA HATASI
-        media.setOnError(() ->
-                System.out.println(
-                        "Media HATASI: "
-                                + media.getError()
-                )
-        );
+                    if (!progressSlider.isValueChanging()) {
 
-        // PLAY BAŞLANGIÇTA KAPALI
-        mediaPlayer.setAutoPlay(false);
+                        double seconds =
+                                newValue.toSeconds();
 
+                        progressSlider.setValue(seconds);
 
-        // =========================
-        // İLERİ / GERİ SARMA
-        // =========================
-
-        progressSlider.valueProperty().addListener(
-                (obs, oldValue, newValue) -> {
-
-                    if (progressSlider.isValueChanging()) {
-
-                        mediaPlayer.seek(
-                                javafx.util.Duration.seconds(
-                                        newValue.doubleValue()
-                                )
+                        currentTimeLabel.setText(
+                                formatTime(seconds)
                         );
                     }
                 }
         );
 
 
-        // =========================
-        // SES
-        // =========================
+        // Slider ile ileri / geri sarma
+        progressSlider.setOnMouseReleased(event -> {
 
-        volumeSlider.setMin(0);
-        volumeSlider.setMax(1);
-        volumeSlider.setValue(0.5);
+            double seconds =
+                    progressSlider.getValue();
 
-        mediaPlayer.setVolume(0.5);
+            Duration newTime =
+                    Duration.seconds(seconds);
 
-        volumeSlider.valueProperty().addListener(
-                (obs, oldValue, newValue) -> {
+            // Müziği sar
+            mediaPlayer.seek(newTime);
 
-                    mediaPlayer.setVolume(
-                            newValue.doubleValue()
-                    );
-                }
-        );
-    }
+            // Videoyu da aynı yere sar
+            videoPlayer.seek(newTime);
+        });
 
-    private String formatTime(double seconds) {
-        int minutes = (int) seconds / 60;
-        int secs = (int) seconds % 60;
 
-        return String.format("%02d:%02d", minutes, secs);
+        // Başlangıçta Play sembolü
+        playPauseButton.setText("▶");
     }
 
 
@@ -164,48 +208,83 @@ public class HelloController {
     @FXML
     private void playPause() {
 
-        if (mediaPlayer == null) {
+        if (mediaPlayer == null ||
+                videoPlayer == null) {
             return;
         }
 
-        if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
 
+        if (mediaPlayer.getStatus()
+                == MediaPlayer.Status.PLAYING) {
+
+            // Müzik dur
             mediaPlayer.pause();
-            playPauseButton.setText("Play");
+
+            // Video dur
+            videoPlayer.pause();
+
+            // Buton Play olsun
+            playPauseButton.setText("▶");
 
         } else {
 
+            // Müzik başla
             mediaPlayer.play();
-            playPauseButton.setText("Pause");
+
+            // Video başla
+            videoPlayer.play();
+
+            // Buton Pause olsun
+            playPauseButton.setText("⏸");
         }
     }
 
 
-    // ÖNCEKİ
-    @FXML
-    private void previousSong() {
-
-        if (mediaPlayer == null) {
-            return;
-        }
-
-        mediaPlayer.seek(javafx.util.Duration.ZERO);
-    }
-
-
-    // SONRAKİ
+    // SONRAKİ ŞARKI
     @FXML
     private void nextSong() {
 
-        if (mediaPlayer == null) {
-            return;
+        currentSongIndex++;
+
+        if (currentSongIndex >= songs.size()) {
+            currentSongIndex = 0;
         }
 
-        mediaPlayer.seek(javafx.util.Duration.ZERO);
-
-        System.out.println("Sonraki şarkıya geçilecek.");
+        loadSong(currentSongIndex);
     }
 
 
+    // ÖNCEKİ ŞARKI
+    @FXML
+    private void previousSong() {
 
+        currentSongIndex--;
+
+        if (currentSongIndex < 0) {
+            currentSongIndex =
+                    songs.size() - 1;
+        }
+
+        loadSong(currentSongIndex);
+    }
+
+
+    // SÜREYİ 00:00 FORMATINA ÇEVİR
+    private String formatTime(double seconds) {
+
+        int totalSeconds =
+                (int) seconds;
+
+        int minutes =
+                totalSeconds / 60;
+
+        int secs =
+                totalSeconds % 60;
+
+        return String.format(
+                "%02d:%02d",
+                minutes,
+                secs
+        );
+    }
 }
